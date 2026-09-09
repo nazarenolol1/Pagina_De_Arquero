@@ -90,9 +90,52 @@ intente manipular las consultas desde el navegador.
 - `alumno`: ve sus propios entrenamientos y estadísticas.
 - `profesor`: ve y gestiona todos los alumnos, entrenamientos y estadísticas.
 
-## Próximos pasos sugeridos (no incluidos en esta v1)
+**El registro público SIEMPRE crea usuarios `alumno`.** Esto se fuerza en la
+base de datos (función `handle_new_user`), no solo en el formulario, así que
+no se puede evitar manipulando la petición desde DevTools. Además, un
+trigger (`prevent_role_self_escalation`) bloquea que un usuario logueado
+cambie su propio rol.
 
-- Formulario para que el profesor cree entrenamientos y suba archivos.
-- Formulario para que el profesor cargue estadísticas.
-- Página de detalle de un alumno (`/admin/alumnos/[id]`).
+### Cómo autorizar a un profesor
+
+No hay panel para esto todavía (queda como próximo paso). Por ahora, desde
+el **SQL Editor de Supabase**, corriendo esto como administrador:
+
+```sql
+update public.profiles
+set role = 'profesor'
+where id = 'UUID-DEL-USUARIO'; -- lo ves en Authentication > Users
+```
+
+Esto funciona porque se ejecuta con la conexión de administrador de
+Supabase (sin sesión de usuario final), que es justamente lo que el trigger
+de protección deja pasar.
+
+## Configuración adicional requerida en el dashboard de Supabase
+
+Estos pasos no están en `schema.sql` porque son configuración del servicio
+de Auth, no de la base de datos:
+
+1. **Confirmación de email** — *Authentication → Sign In / Providers → Email*:
+   confirmar que "Confirm email" esté activado (viene activado por defecto).
+2. **URLs de redirección** — *Authentication → URL Configuration*:
+   - **Site URL**: tu dominio (ej. `https://arqueros-app.vercel.app`, o
+     `http://localhost:3000` en desarrollo).
+   - **Redirect URLs**: agregar `https://tu-dominio/auth/callback` (y
+     `http://localhost:3000/auth/callback` para probar en local).
+   Sin esto, el link del email de confirmación no va a volver a la app.
+3. **Requisitos de contraseña** — *Authentication → Providers → Email →
+   Password Requirements*: configurar mínimo 8 caracteres y "Lowercase,
+   uppercase and digits". La app ya valida esto en el servidor antes de
+   llamar a Supabase, pero conviene tenerlo también acá para que quede
+   forzado aunque alguien llame a la API de Supabase directamente.
+
+## Próximos pasos sugeridos (no incluidos en esta versión)
+
+- Formulario para que el profesor cargue estadísticas (por ahora solo se
+  pueden cargar clases/entrenamientos).
+- Panel para autorizar profesores sin pasar por el SQL Editor.
+- Subida real de archivos (video/foto) a Supabase Storage desde el
+  formulario de "nueva clase" — hoy el formulario carga título, fecha y
+  descripción; falta el input de archivo.
 - Íconos reales para el manifest / PWA instalable.
