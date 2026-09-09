@@ -3,8 +3,11 @@ import Link from "next/link";
 import { getPerfil } from "@/features/arqueros/actions/getPerfil";
 import { getAlumnoPorId } from "@/features/admin/actions/getAlumnoPorId";
 import { getEntrenamientos } from "@/features/entrenamientos/actions/getEntrenamientos";
+import { getEstadisticas } from "@/features/estadisticas/actions/getEstadisticas";
 import { EntrenamientoCard } from "@/features/entrenamientos/components/EntrenamientoCard";
 import { NuevoEntrenamientoForm } from "@/features/entrenamientos/components/NuevoEntrenamientoForm";
+import { NuevaEstadisticaForm } from "@/features/estadisticas/components/NuevaEstadisticaForm";
+import { EstadisticaCard } from "@/features/estadisticas/components/EstadisticaCard";
 import { AppHeader } from "@/shared/components/AppHeader";
 
 export default async function AlumnoDetallePage({
@@ -22,6 +25,7 @@ export default async function AlumnoDetallePage({
   if (!alumno) notFound();
 
   const entrenamientos = await getEntrenamientos(alumno.id);
+  const estadisticas = await getEstadisticas(alumno.id);
 
   return (
     <>
@@ -53,6 +57,26 @@ export default async function AlumnoDetallePage({
                   key={entrenamiento.id}
                   entrenamiento={entrenamiento}
                 />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-12 mt-16 pt-16 border-t border-border">
+          <NuevaEstadisticaForm alumnoId={alumno.id} />
+
+          <div>
+            <h2 className="font-heading text-3xl mb-6">
+              Historial de estadísticas
+            </h2>
+            <div className="flex flex-col gap-8">
+              {estadisticas.length === 0 && (
+                <p className="text-foreground/60">
+                  Todavía no hay estadísticas cargadas para este alumno.
+                </p>
+              )}
+              {estadisticas.map((estadistica) => (
+                <EstadisticaCard key={estadistica.id} estadistica={estadistica} />
               ))}
             </div>
           </div>

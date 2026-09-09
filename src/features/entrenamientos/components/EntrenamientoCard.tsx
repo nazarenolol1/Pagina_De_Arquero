@@ -1,4 +1,5 @@
 import type { EntrenamientoConArchivos } from "@/features/entrenamientos/actions/getEntrenamientos";
+import { formatFecha } from "@/shared/utils/formatFecha";
 
 const ICONOS: Record<string, string> = {
   video: "🎥",
@@ -14,11 +15,7 @@ export function EntrenamientoCard({
   return (
     <article className="border-l-2 border-accent-secondary pl-5 py-1">
       <p className="text-sm text-foreground/60">
-        {new Date(entrenamiento.fecha).toLocaleDateString("es-AR", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        })}
+        {formatFecha(entrenamiento.fecha)}
       </p>
       <h3 className="font-heading text-2xl mt-1">{entrenamiento.titulo}</h3>
       {entrenamiento.descripcion && (
