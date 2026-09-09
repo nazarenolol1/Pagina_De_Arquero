@@ -33,23 +33,18 @@ export function RegisterForm() {
         name="password"
         type="password"
         label="Contraseña"
-        minLength={6}
+        minLength={8}
+        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}"
+        title="Mínimo 8 caracteres, con una mayúscula, una minúscula y un número."
         required
       />
-
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm text-foreground/70 mb-1">Soy...</legend>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="radio" name="role" value="alumno" defaultChecked />
-            Arquero (alumno)
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="radio" name="role" value="profesor" />
-            Entrenador
-          </label>
-        </div>
-      </fieldset>
+      <p className="text-xs text-foreground/60 -mt-2">
+        Mínimo 8 caracteres, con una mayúscula, una minúscula y un número.
+      </p>
+      <p className="text-xs text-foreground/60">
+        Esta cuenta se crea como <strong>arquero</strong>. Si sos entrenador,
+        pedile a la administración que te dé acceso.
+      </p>
 
       {error && <p className="text-sm text-red-700">{error}</p>}
       <Button type="submit" disabled={isPending}>
