@@ -23,17 +23,49 @@ export function EntrenamientoCard({
       )}
 
       {entrenamiento.entrenamiento_archivos?.length > 0 && (
-        <ul className="flex flex-wrap gap-3 mt-3">
-          {entrenamiento.entrenamiento_archivos.map((archivo) => (
-            <li
-              key={archivo.id}
-              className="text-sm bg-surface border border-border px-3 py-1.5"
-            >
-              {ICONOS[archivo.tipo]}{" "}
-              {archivo.tipo === "nota" ? archivo.contenido_texto : archivo.tipo}
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-wrap gap-4 mt-4">
+          {entrenamiento.entrenamiento_archivos.map((archivo) => {
+            if (archivo.tipo === "nota") {
+              return (
+                <p
+                  key={archivo.id}
+                  className="text-sm bg-surface border border-border px-3 py-2 w-full"
+                >
+                  📝 {archivo.contenido_texto}
+                </p>
+              );
+            }
+
+            if (!archivo.signedUrl) {
+              return (
+                <p key={archivo.id} className="text-sm text-foreground/50">
+                  {ICONOS[archivo.tipo]} Archivo no disponible
+                </p>
+              );
+            }
+
+            if (archivo.tipo === "video") {
+              return (
+                <video
+                  key={archivo.id}
+                  src={archivo.signedUrl}
+                  controls
+                  className="w-full max-w-xs bg-black"
+                />
+              );
+            }
+
+            return (
+              // eslint-disable-next-line @next/next/no-img-element -- URL firmada dinámica, no apta para next/image
+              <img
+                key={archivo.id}
+                src={archivo.signedUrl}
+                alt={`Foto de la clase "${entrenamiento.titulo}"`}
+                className="w-full max-w-xs object-cover border border-border"
+              />
+            );
+          })}
+        </div>
       )}
     </article>
   );

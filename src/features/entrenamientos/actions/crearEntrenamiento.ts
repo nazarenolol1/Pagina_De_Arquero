@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export interface CrearEntrenamientoResult {
   error: string | null;
+  entrenamientoId?: string;
 }
 
 /**
@@ -45,18 +46,22 @@ export async function crearEntrenamiento(
     return { error: "El título de la clase es obligatorio." };
   }
 
-  const { error } = await supabase.from("entrenamientos").insert({
-    alumno_id: alumnoId,
-    profesor_id: user.id,
-    titulo,
-    descripcion: descripcion || null,
-    fecha: fecha || new Date().toISOString().slice(0, 10),
-  });
+  const { data: nuevoEntrenamiento, error } = await supabase
+    .from("entrenamientos")
+    .insert({
+      alumno_id: alumnoId,
+      profesor_id: user.id,
+      titulo,
+      descripcion: descripcion || null,
+      fecha: fecha || new Date().toISOString().slice(0, 10),
+    })
+    .select("id")
+    .single();
 
   if (error) {
     return { error: "No se pudo guardar la clase. " + error.message };
   }
 
   revalidatePath(`/admin/alumnos/${alumnoId}`);
-  return { error: null };
+  return { error: null, entrenamientoId: nuevoEntrenamiento.id };
 }
