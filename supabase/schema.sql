@@ -1,6 +1,8 @@
 -- =========================================================
 -- SCHEMA: Plataforma de Arqueros
 -- Correr este archivo completo en Supabase > SQL Editor
+-- =========================================================
+
 -- ---------------------------------------------------------
 -- 0. LIMPIEZA (permite re-correr este script sin errores,
 --    sin importar si es la primera vez o no)
@@ -11,6 +13,7 @@ begin
     drop policy if exists "profiles: ver propio perfil" on public.profiles;
     drop policy if exists "profiles: profesor ve todos" on public.profiles;
     drop policy if exists "profiles: actualizar propio perfil" on public.profiles;
+    drop trigger if exists before_profiles_update on public.profiles;
   end if;
 
   if to_regclass('public.entrenamientos') is not null then
@@ -175,7 +178,10 @@ create policy "estadisticas: profesor gestiona todo"
 
 -- ---------------------------------------------------------
 -- 5. TRIGGER: crear perfil automáticamente al registrarse
--- Lee "nombre_completo" y "role" de los metadatos pasados en el signUp().
+-- El registro público SIEMPRE crea usuarios "alumno".
+-- Cualquier valor de "role" que venga en los metadatos del
+-- signUp() (ej. manipulado desde DevTools) se ignora a propósito.
+-- Los profesores se autorizan a mano desde el SQL Editor (ver README).
 -- ---------------------------------------------------------
 create or replace function public.handle_new_user()
 returns trigger
@@ -188,7 +194,7 @@ begin
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'nombre_completo', 'Sin nombre'),
-    coalesce(new.raw_user_meta_data->>'role', 'alumno')
+    'alumno'
   );
   return new;
 end;
@@ -200,11 +206,48 @@ create trigger on_auth_user_created
 
 
 -- ---------------------------------------------------------
--- 6. STORAGE: bucket para videos y fotos de entrenamientos
+-- 5b. TRIGGER: evitar que un usuario cambie su propio rol
+-- La policy de UPDATE permite editar la propia fila (para nombre,
+-- avatar, etc.), pero por sí sola no impide tocar la columna "role".
+-- Este trigger bloquea ese cambio cuando lo hace un usuario logueado
+-- normal (auth.uid() con valor). Un cambio hecho desde el SQL Editor
+-- o con la service_role key (sin JWT de usuario) sí pasa: así se
+-- autorizan profesores "desde administración".
 -- ---------------------------------------------------------
-insert into storage.buckets (id, name, public)
-values ('entrenamientos', 'entrenamientos', false)
-on conflict (id) do nothing;
+create or replace function public.prevent_role_self_escalation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.role is distinct from old.role and auth.uid() is not null then
+    raise exception 'No tenés permiso para cambiar el rol de este perfil.';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger before_profiles_update
+  before update on public.profiles
+  for each row execute function public.prevent_role_self_escalation();
+
+
+-- ---------------------------------------------------------
+-- 6. STORAGE: bucket para videos y fotos de entrenamientos
+-- Límite de 100MB por archivo, solo imágenes y video comunes.
+-- ---------------------------------------------------------
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'entrenamientos',
+  'entrenamientos',
+  false,
+  104857600, -- 100 MB
+  array['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'video/mp4', 'video/quicktime', 'video/webm']
+)
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 create policy "storage: profesor sube archivos"
   on storage.objects for insert

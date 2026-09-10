@@ -132,10 +132,5 @@ de Auth, no de la base de datos:
 
 ## Próximos pasos sugeridos (no incluidos en esta versión)
 
-- Formulario para que el profesor cargue estadísticas (por ahora solo se
-  pueden cargar clases/entrenamientos).
 - Panel para autorizar profesores sin pasar por el SQL Editor.
-- Subida real de archivos (video/foto) a Supabase Storage desde el
-  formulario de "nueva clase" — hoy el formulario carga título, fecha y
-  descripción; falta el input de archivo.
 - Íconos reales para el manifest / PWA instalable.
