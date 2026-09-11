@@ -34,8 +34,6 @@ export function RegisterForm() {
         type="password"
         label="Contraseña"
         minLength={8}
-        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}"
-        title="Mínimo 8 caracteres, con una mayúscula, una minúscula y un número."
         required
       />
       <p className="text-xs text-foreground/60 -mt-2">
