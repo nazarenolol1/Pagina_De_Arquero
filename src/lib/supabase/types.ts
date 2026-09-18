@@ -10,6 +10,7 @@ export type Role = "alumno" | "profesor";
 export interface Profile {
   id: string;
   role: Role;
+  email: string;
   nombre_completo: string;
   avatar_url: string | null;
   created_at: string;

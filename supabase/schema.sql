@@ -53,6 +53,16 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
+-- Se agrega por separado (en vez de en el create table) para que el
+-- script siga siendo seguro de re-correr en instalaciones que ya
+-- tenían la tabla creada sin esta columna.
+alter table public.profiles add column if not exists email text;
+update public.profiles p
+set email = u.email
+from auth.users u
+where p.id = u.id and p.email is null;
+alter table public.profiles alter column email set not null;
+
 alter table public.profiles enable row level security;
 
 -- Función helper: ¿el usuario actual es profesor?
@@ -190,9 +200,10 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, nombre_completo, role)
+  insert into public.profiles (id, email, nombre_completo, role)
   values (
     new.id,
+    new.email,
     coalesce(new.raw_user_meta_data->>'nombre_completo', 'Sin nombre'),
     'alumno'
   );

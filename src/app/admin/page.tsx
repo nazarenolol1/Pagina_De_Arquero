@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getPerfil } from "@/features/arqueros/actions/getPerfil";
 import { getAlumnos } from "@/features/admin/actions/getAlumnos";
 import { ListaAlumnos } from "@/features/admin/components/ListaAlumnos";
+import { AutorizarProfesorForm } from "@/features/admin/components/AutorizarProfesorForm";
 import { AppHeader } from "@/shared/components/AppHeader";
 
 export default async function AdminPage() {
@@ -16,12 +17,20 @@ export default async function AdminPage() {
     <>
       <AppHeader nombre={perfil.nombre_completo} />
       <main className="flex-1 px-6 md:px-16 py-12">
-        <h1 className="font-heading text-5xl md:text-6xl mb-2">Mis arqueros</h1>
-        <p className="text-foreground/70 mb-10">
-          {alumnos.length} arquero{alumnos.length !== 1 ? "s" : ""} registrado
-          {alumnos.length !== 1 ? "s" : ""}.
-        </p>
-        <ListaAlumnos alumnos={alumnos} />
+        <h1 className="font-heading text-5xl md:text-6xl mb-10">Panel</h1>
+
+        <div className="grid md:grid-cols-2 gap-12">
+          <div>
+            <h2 className="font-heading text-3xl mb-2">Mis arqueros</h2>
+            <p className="text-foreground/70 mb-6">
+              {alumnos.length} arquero{alumnos.length !== 1 ? "s" : ""}{" "}
+              registrado{alumnos.length !== 1 ? "s" : ""}.
+            </p>
+            <ListaAlumnos alumnos={alumnos} />
+          </div>
+
+          <AutorizarProfesorForm />
+        </div>
       </main>
     </>
   );

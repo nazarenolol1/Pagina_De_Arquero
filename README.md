@@ -98,18 +98,21 @@ cambie su propio rol.
 
 ### Cómo autorizar a un profesor
 
-No hay panel para esto todavía (queda como próximo paso). Por ahora, desde
-el **SQL Editor de Supabase**, corriendo esto como administrador:
+Desde `/admin`, cualquier profesor ya logueado tiene un formulario
+**"Autorizar profesor"**: la persona se registra primero como arquero en
+`/registro`, y después un profesor pone su email ahí. Eso confirma su
+email (sin depender del mail) y le cambia el rol — ya puede entrar.
+
+Esto usa la `SUPABASE_SERVICE_ROLE_KEY` del lado del servidor (ver
+sección de variables de entorno más abajo). Si por algún motivo prefieras
+hacerlo a mano, también se puede desde el SQL Editor de Supabase:
 
 ```sql
-update public.profiles
-set role = 'profesor'
-where id = 'UUID-DEL-USUARIO'; -- lo ves en Authentication > Users
+update auth.users set email_confirmed_at = now() where email = 'el@mail.com';
+update public.profiles set role = 'profesor'
+where id = (select id from auth.users where email = 'el@mail.com');
 ```
 
-Esto funciona porque se ejecuta con la conexión de administrador de
-Supabase (sin sesión de usuario final), que es justamente lo que el trigger
-de protección deja pasar.
 
 ## Configuración adicional requerida en el dashboard de Supabase
 
@@ -129,8 +132,19 @@ de Auth, no de la base de datos:
    uppercase and digits". La app ya valida esto en el servidor antes de
    llamar a Supabase, pero conviene tenerlo también acá para que quede
    forzado aunque alguien llame a la API de Supabase directamente.
+4. **Service role key** — *Project Settings → API → Project API keys →
+   service_role* (o "Secret keys" en el formato nuevo). Copiala en Vercel
+   como `SUPABASE_SERVICE_ROLE_KEY` (⚠️ marcada como **Secret**, nunca
+   como "Config", y el nombre NUNCA con el prefijo `NEXT_PUBLIC_`). La
+   usa el panel de "Autorizar profesor". Si esta clave se llega a
+   exponer alguna vez por error, hay que rotarla al toque desde ahí mismo.
 
 ## Próximos pasos sugeridos (no incluidos en esta versión)
 
-- Panel para autorizar profesores sin pasar por el SQL Editor.
 - Íconos reales para el manifest / PWA instalable.
+- Verificar un dominio propio en Resend (o el proveedor de mail que uses)
+  para que la confirmación de email le llegue a cualquier alumno, no solo
+  a la casilla de la cuenta de Resend.
+- Flujo de "olvidé mi contraseña" (por ahora, para resetear la contraseña
+  de un usuario hay que hacerlo a mano desde Supabase → Authentication →
+  Users → esa fila → Reset Password).
