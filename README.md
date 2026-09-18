@@ -1,6 +1,6 @@
 # Arqueros — Plataforma de seguimiento de rendimiento
 
-App para que arqueros (alumnos) y entrenadores (profesores) registren
+App para que arqueros (alumnos) y entrenadores (profesores) registren los
 entrenamientos y estadísticas de rendimiento.
 
 ## Stack
